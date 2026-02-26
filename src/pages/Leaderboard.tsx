@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Trophy, TrendingUp, TrendingDown, Minus, Shield } from "lucide-react";
 import { useState } from "react";
+import { DrillDownPanel } from "@/components/leaderboard/DrillDownPanel";
 
 const tabs = ["Developers", "Entities", "Teams", "Repositories"] as const;
 
@@ -45,9 +46,10 @@ function EngagementBadge({ level }: { level: string }) {
   return <span className={cn("text-[10px] font-mono px-2 py-0.5 rounded-full", map[level])}>{level}</span>;
 }
 
-function DeveloperRow({ entry, index }: { entry: LeaderboardEntry; index: number }) {
+function DeveloperRow({ entry, index, onClick }: { entry: LeaderboardEntry; index: number; onClick: () => void }) {
   return (
     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.03 }}
+      onClick={onClick}
       className={cn("flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-secondary/30 cursor-pointer", index === 0 && "glass-card-glow")}>
       <RankBadge rank={entry.rank} />
       <RankChange change={entry.rankChange} />
@@ -74,6 +76,7 @@ function DeveloperRow({ entry, index }: { entry: LeaderboardEntry; index: number
 
 const Leaderboard = () => {
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>("Developers");
+  const [drillDown, setDrillDown] = useState<{ type: 'developer' | 'entity' | 'team' | 'repo'; data: any } | null>(null);
 
   return (
     <AppLayout>
@@ -104,7 +107,8 @@ const Leaderboard = () => {
                 const e = mockLeaderboard[idx]; const isFirst = idx === 0;
                 return (
                   <motion.div key={e.rank} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 * idx }}
-                    className={cn("flex flex-col items-center p-4 rounded-xl glass-card text-center", isFirst && "glass-card-glow -mt-4 pb-6")}>
+                    onClick={() => setDrillDown({ type: 'developer', data: e })}
+                    className={cn("flex flex-col items-center p-4 rounded-xl glass-card text-center cursor-pointer hover:border-primary/30 transition-all", isFirst && "glass-card-glow -mt-4 pb-6")}>
                     <div className={cn("w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg mb-2", isFirst ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground")}>{e.avatar}</div>
                     <div className="text-sm font-semibold text-foreground">{e.name}</div>
                     <div className="text-[10px] text-muted-foreground">{e.entity} · {e.team}</div>
@@ -116,7 +120,9 @@ const Leaderboard = () => {
               })}
             </div>
             <div className="space-y-1">
-              {mockLeaderboard.map((entry, i) => <DeveloperRow key={entry.rank} entry={entry} index={i} />)}
+              {mockLeaderboard.map((entry, i) => (
+                <DeveloperRow key={entry.rank} entry={entry} index={i} onClick={() => setDrillDown({ type: 'developer', data: entry })} />
+              ))}
             </div>
           </>
         )}
@@ -126,7 +132,8 @@ const Leaderboard = () => {
           <div className="space-y-1">
             {mockEntityLeaderboard.map((entity, i) => (
               <motion.div key={entity.rank} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
-                className={cn("flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-secondary/30", i === 0 && "glass-card-glow")}>
+                onClick={() => setDrillDown({ type: 'entity', data: entity })}
+                className={cn("flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-secondary/30 cursor-pointer", i === 0 && "glass-card-glow")}>
                 <RankBadge rank={entity.rank} /><RankChange change={entity.rankChange} />
                 <div className="flex-1">
                   <div className="text-sm font-semibold text-foreground">{entity.name}</div>
@@ -147,7 +154,8 @@ const Leaderboard = () => {
           <div className="space-y-1">
             {mockTeamLeaderboard.map((team, i) => (
               <motion.div key={team.rank} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
-                className={cn("flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-secondary/30", i === 0 && "glass-card-glow")}>
+                onClick={() => setDrillDown({ type: 'team', data: team })}
+                className={cn("flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-secondary/30 cursor-pointer", i === 0 && "glass-card-glow")}>
                 <RankBadge rank={team.rank} /><RankChange change={team.rankChange} />
                 <div className="flex-1">
                   <div className="text-sm font-semibold text-foreground">{team.team}</div>
@@ -169,7 +177,8 @@ const Leaderboard = () => {
           <div className="space-y-1">
             {mockRepoLeaderboard.map((repo, i) => (
               <motion.div key={repo.rank} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
-                className={cn("flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-secondary/30", i === 0 && "glass-card-glow")}>
+                onClick={() => setDrillDown({ type: 'repo', data: repo })}
+                className={cn("flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-secondary/30 cursor-pointer", i === 0 && "glass-card-glow")}>
                 <RankBadge rank={repo.rank} /><RankChange change={repo.rankChange} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -191,6 +200,10 @@ const Leaderboard = () => {
           </div>
         )}
       </div>
+
+      {drillDown && (
+        <DrillDownPanel type={drillDown.type} data={drillDown.data} onClose={() => setDrillDown(null)} />
+      )}
     </AppLayout>
   );
 };
