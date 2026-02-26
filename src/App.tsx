@@ -7,6 +7,12 @@ import Index from "./pages/Index";
 import Leaderboard from "./pages/Leaderboard";
 import Gamification from "./pages/Gamification";
 import AIInsights from "./pages/AIInsights";
+import Analytics from "./pages/Analytics";
+import CostOptimization from "./pages/CostOptimization";
+import Teams from "./pages/Teams";
+import Notifications from "./pages/Notifications";
+import Security from "./pages/Security";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +28,12 @@ const App = () => (
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/gamification" element={<Gamification />} />
           <Route path="/ai-insights" element={<AIInsights />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/cost-optimization" element={<CostOptimization />} />
+          <Route path="/teams" element={<Teams />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/security" element={<Security />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

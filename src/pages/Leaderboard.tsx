@@ -1,8 +1,8 @@
 import { AppLayout } from "@/components/AppLayout";
-import { mockLeaderboard, mockEntityLeaderboard, LeaderboardEntry } from "@/lib/mock-data";
+import { mockLeaderboard, mockEntityLeaderboard, mockTeamLeaderboard, mockRepoLeaderboard, LeaderboardEntry, TeamLeaderboardEntry, RepoLeaderboardEntry } from "@/lib/mock-data";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Trophy, TrendingUp, TrendingDown, Minus, ChevronDown } from "lucide-react";
+import { Trophy, TrendingUp, TrendingDown, Minus, Shield } from "lucide-react";
 import { useState } from "react";
 
 const tabs = ["Developers", "Entities", "Teams", "Repositories"] as const;
@@ -22,12 +22,11 @@ function RankChange({ change }: { change: number }) {
 
 function LevelPill({ level, name }: { level: number; name: string }) {
   const colors: Record<number, string> = {
-    1: "bg-muted text-muted-foreground",
-    2: "bg-accent/15 text-accent",
-    3: "bg-primary/15 text-primary",
-    4: "bg-glow-warning/15 text-glow-warning",
-    5: "bg-glow-purple/15 text-glow-purple",
-    6: "bg-glow-rose/15 text-glow-rose",
+    1: "bg-muted text-muted-foreground", 2: "bg-muted text-muted-foreground",
+    3: "bg-accent/15 text-accent", 4: "bg-accent/15 text-accent",
+    5: "bg-primary/15 text-primary", 6: "bg-primary/15 text-primary",
+    7: "bg-glow-warning/15 text-glow-warning", 8: "bg-glow-warning/15 text-glow-warning",
+    9: "bg-glow-purple/15 text-glow-purple", 10: "bg-glow-rose/15 text-glow-rose",
   };
   return (
     <span className={cn("text-[10px] font-mono px-2 py-0.5 rounded-full", colors[level] || colors[1])}>
@@ -36,24 +35,23 @@ function LevelPill({ level, name }: { level: number; name: string }) {
   );
 }
 
+function EngagementBadge({ level }: { level: string }) {
+  const map: Record<string, string> = {
+    High: "bg-accent/15 text-accent",
+    Medium: "bg-glow-warning/15 text-glow-warning",
+    Low: "bg-destructive/15 text-destructive",
+    None: "bg-muted text-muted-foreground",
+  };
+  return <span className={cn("text-[10px] font-mono px-2 py-0.5 rounded-full", map[level])}>{level}</span>;
+}
+
 function DeveloperRow({ entry, index }: { entry: LeaderboardEntry; index: number }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className={cn(
-        "flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-secondary/30 cursor-pointer",
-        index === 0 && "glass-card-glow"
-      )}
-    >
+    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.03 }}
+      className={cn("flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-secondary/30 cursor-pointer", index === 0 && "glass-card-glow")}>
       <RankBadge rank={entry.rank} />
       <RankChange change={entry.rankChange} />
-
-      <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-        {entry.avatar}
-      </div>
-
+      <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center text-xs font-bold text-primary shrink-0">{entry.avatar}</div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-foreground">{entry.name}</span>
@@ -64,24 +62,11 @@ function DeveloperRow({ entry, index }: { entry: LeaderboardEntry; index: number
           <LevelPill level={entry.level} name={entry.levelName} />
         </div>
       </div>
-
       <div className="hidden md:grid grid-cols-4 gap-6 text-center">
-        <div>
-          <div className="text-sm font-mono font-semibold text-primary">{entry.aiContribution}%</div>
-          <div className="text-[10px] text-muted-foreground">AI Contrib</div>
-        </div>
-        <div>
-          <div className="text-sm font-mono font-semibold text-foreground">{entry.productivityIndex}</div>
-          <div className="text-[10px] text-muted-foreground">Productivity</div>
-        </div>
-        <div>
-          <div className="text-sm font-mono font-semibold text-foreground">{entry.qualityScore}%</div>
-          <div className="text-[10px] text-muted-foreground">Quality</div>
-        </div>
-        <div>
-          <div className="text-sm font-mono font-semibold text-glow-warning">🔥 {entry.streak}</div>
-          <div className="text-[10px] text-muted-foreground">Streak</div>
-        </div>
+        <div><div className="text-sm font-mono font-semibold text-primary">{entry.aiContribution}%</div><div className="text-[10px] text-muted-foreground">AI Contrib</div></div>
+        <div><div className="text-sm font-mono font-semibold text-foreground">{entry.productivityIndex}</div><div className="text-[10px] text-muted-foreground">Productivity</div></div>
+        <div><div className="text-sm font-mono font-semibold text-foreground">{entry.qualityScore}%</div><div className="text-[10px] text-muted-foreground">Quality</div></div>
+        <div><div className="text-sm font-mono font-semibold text-glow-warning">🔥 {entry.streak}d</div><div className="text-[10px] text-muted-foreground">Streak</div></div>
       </div>
     </motion.div>
   );
@@ -101,50 +86,28 @@ const Leaderboard = () => {
           <p className="text-sm text-muted-foreground">Ranked by AI productivity, adoption, and quality scores</p>
         </motion.div>
 
-        {/* Tabs */}
         <div className="flex gap-1 bg-secondary/50 rounded-lg p-1 w-fit">
           {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                "px-4 py-2 text-xs font-medium rounded-md transition-all",
-                activeTab === tab
-                  ? "bg-primary/15 text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
+            <button key={tab} onClick={() => setActiveTab(tab)}
+              className={cn("px-4 py-2 text-xs font-medium rounded-md transition-all",
+                activeTab === tab ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground")}>
               {tab}
             </button>
           ))}
         </div>
 
-        {/* Top 3 Podium */}
+        {/* Developers */}
         {activeTab === "Developers" && (
           <>
             <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
               {[1, 0, 2].map((idx) => {
-                const e = mockLeaderboard[idx];
-                const isFirst = idx === 0;
+                const e = mockLeaderboard[idx]; const isFirst = idx === 0;
                 return (
-                  <motion.div
-                    key={e.rank}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 * idx }}
-                    className={cn(
-                      "flex flex-col items-center p-4 rounded-xl glass-card text-center",
-                      isFirst && "glass-card-glow -mt-4 pb-6"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg mb-2",
-                      isFirst ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"
-                    )}>
-                      {e.avatar}
-                    </div>
+                  <motion.div key={e.rank} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 * idx }}
+                    className={cn("flex flex-col items-center p-4 rounded-xl glass-card text-center", isFirst && "glass-card-glow -mt-4 pb-6")}>
+                    <div className={cn("w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg mb-2", isFirst ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground")}>{e.avatar}</div>
                     <div className="text-sm font-semibold text-foreground">{e.name}</div>
-                    <div className="text-[10px] text-muted-foreground">{e.entity}</div>
+                    <div className="text-[10px] text-muted-foreground">{e.entity} · {e.team}</div>
                     <div className="font-mono text-xl font-bold gradient-text mt-2">{e.aiContribution}%</div>
                     <div className="text-[10px] text-muted-foreground">AI Contribution</div>
                     <div className="flex gap-1 mt-2">{e.badges.map((b, i) => <span key={i}>{b}</span>)}</div>
@@ -152,57 +115,79 @@ const Leaderboard = () => {
                 );
               })}
             </div>
-
-            {/* Full list */}
             <div className="space-y-1">
-              {mockLeaderboard.map((entry, i) => (
-                <DeveloperRow key={entry.rank} entry={entry} index={i} />
-              ))}
+              {mockLeaderboard.map((entry, i) => <DeveloperRow key={entry.rank} entry={entry} index={i} />)}
             </div>
           </>
         )}
 
+        {/* Entities */}
         {activeTab === "Entities" && (
           <div className="space-y-1">
             {mockEntityLeaderboard.map((entity, i) => (
-              <motion.div
-                key={entity.rank}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className={cn(
-                  "flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-secondary/30",
-                  i === 0 && "glass-card-glow"
-                )}
-              >
-                <RankBadge rank={entity.rank} />
-                <RankChange change={entity.rankChange} />
+              <motion.div key={entity.rank} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
+                className={cn("flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-secondary/30", i === 0 && "glass-card-glow")}>
+                <RankBadge rank={entity.rank} /><RankChange change={entity.rankChange} />
                 <div className="flex-1">
                   <div className="text-sm font-semibold text-foreground">{entity.name}</div>
                   <div className="text-[10px] text-muted-foreground">{entity.devs} developers</div>
                 </div>
                 <div className="hidden md:grid grid-cols-3 gap-6 text-center">
-                  <div>
-                    <div className="text-sm font-mono font-semibold text-primary">{entity.aiScore}</div>
-                    <div className="text-[10px] text-muted-foreground">AI Score</div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-mono font-semibold text-accent">+{entity.growth}%</div>
-                    <div className="text-[10px] text-muted-foreground">Growth</div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-mono font-semibold text-foreground">{entity.roi}x</div>
-                    <div className="text-[10px] text-muted-foreground">ROI</div>
-                  </div>
+                  <div><div className="text-sm font-mono font-semibold text-primary">{entity.aiScore}</div><div className="text-[10px] text-muted-foreground">AI Score</div></div>
+                  <div><div className="text-sm font-mono font-semibold text-accent">+{entity.growth}%</div><div className="text-[10px] text-muted-foreground">Growth</div></div>
+                  <div><div className="text-sm font-mono font-semibold text-foreground">{entity.roi}x</div><div className="text-[10px] text-muted-foreground">ROI</div></div>
                 </div>
               </motion.div>
             ))}
           </div>
         )}
 
-        {(activeTab === "Teams" || activeTab === "Repositories") && (
-          <div className="glass-card rounded-xl p-12 text-center">
-            <p className="text-sm text-muted-foreground">Coming soon — {activeTab} leaderboard</p>
+        {/* Teams */}
+        {activeTab === "Teams" && (
+          <div className="space-y-1">
+            {mockTeamLeaderboard.map((team, i) => (
+              <motion.div key={team.rank} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
+                className={cn("flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-secondary/30", i === 0 && "glass-card-glow")}>
+                <RankBadge rank={team.rank} /><RankChange change={team.rankChange} />
+                <div className="flex-1">
+                  <div className="text-sm font-semibold text-foreground">{team.team}</div>
+                  <div className="text-[10px] text-muted-foreground">{team.entity} · {team.devs} devs</div>
+                </div>
+                <div className="hidden md:grid grid-cols-4 gap-6 text-center">
+                  <div><div className="text-sm font-mono font-semibold text-primary">{team.prVelocity}</div><div className="text-[10px] text-muted-foreground">PR Velocity</div></div>
+                  <div><div className="text-sm font-mono font-semibold text-accent">{team.aiMergeRate}%</div><div className="text-[10px] text-muted-foreground">AI Merge</div></div>
+                  <div><div className="text-sm font-mono font-semibold text-foreground">{team.toolDiversity}</div><div className="text-[10px] text-muted-foreground">Tools</div></div>
+                  <div><div className="text-sm font-mono font-semibold text-glow-warning">{team.maturityScore}</div><div className="text-[10px] text-muted-foreground">Maturity</div></div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* Repositories */}
+        {activeTab === "Repositories" && (
+          <div className="space-y-1">
+            {mockRepoLeaderboard.map((repo, i) => (
+              <motion.div key={repo.rank} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
+                className={cn("flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-secondary/30", i === 0 && "glass-card-glow")}>
+                <RankBadge rank={repo.rank} /><RankChange change={repo.rankChange} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-foreground font-mono">{repo.repo}</span>
+                    {repo.sensitiveExposure && <Shield className="w-3 h-3 text-glow-warning" />}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] text-muted-foreground">{repo.entity} · {repo.team}</span>
+                    <EngagementBadge level={repo.aiEngagement} />
+                  </div>
+                </div>
+                <div className="hidden md:grid grid-cols-3 gap-6 text-center">
+                  <div><div className="text-sm font-mono font-semibold text-primary">{repo.aiPRs}/{repo.totalPRs}</div><div className="text-[10px] text-muted-foreground">AI/Total PRs</div></div>
+                  <div><div className="text-sm font-mono font-semibold text-accent">{repo.aiPRMergeSpeed}h</div><div className="text-[10px] text-muted-foreground">Merge Speed</div></div>
+                  <div><div className="text-sm font-mono font-semibold text-foreground">{Math.round(repo.aiPRs / repo.totalPRs * 100)}%</div><div className="text-[10px] text-muted-foreground">AI %</div></div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         )}
       </div>
