@@ -13,6 +13,7 @@ import Teams from "./pages/Teams";
 import Notifications from "./pages/Notifications";
 import Security from "./pages/Security";
 import Settings from "./pages/Settings";
+import Integrations from "./pages/Integrations";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/security" element={<Security />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/integrations" element={<Integrations />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
