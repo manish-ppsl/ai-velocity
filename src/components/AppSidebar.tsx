@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Zap,
+  Plug,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,7 @@ const navSections = [
       { to: "/teams", icon: Users, label: "Teams" },
       { to: "/notifications", icon: Bell, label: "Notifications" },
       { to: "/security", icon: Shield, label: "Security" },
+      { to: "/integrations", icon: Plug, label: "Integrations" },
       { to: "/settings", icon: Settings, label: "Settings" },
     ],
   },
